@@ -30,6 +30,18 @@ def api_posts():
     posts_data = post_manager.get_all_posts()
     return jsonify(posts_data)
 
+# Create post routes
+route_creator.create_post_routes()
+
+# Vercel serverless handler
+def handler(request):
+    try:
+        return app(request.environ, lambda x, y: [])
+    except Exception as e:
+        print(f"Handler error: {str(e)}")
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"error": "Internal Server Error"}), 500
+
 if __name__ == "__main__":
-    route_creator.create_post_routes()
     app.run(debug=True)
