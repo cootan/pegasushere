@@ -32,4 +32,4 @@ def api_posts():
 
 if __name__ == "__main__":
     route_creator.create_post_routes()
-    app.run(debug=True)
+    app.run
