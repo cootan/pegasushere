@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Blog Posts</h1>
+    <div class="list-group">
+        {% for filename, post_html in posts %}
+            <a href="{{ url_for('post', post_id=filename) }}" class="list-group-item list-group-item-action">
+                {{ post_html|safe }}
+            </a>
+        {% endfor %}
+    </div>
+{% endblock %}
