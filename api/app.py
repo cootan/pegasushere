@@ -3,14 +3,20 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import os
 import markdown
 from datetime import datetime
+import logging
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder='static')
 app.secret_key = 'your_secret_key'
+
+# Set up logging
+logging.basicConfig(level=logging.DEBUG)
+app.logger.setLevel(logging.DEBUG)
 
 users = {}  # In-memory user store, replace with a database in production
 
 def save_post(title, content, author):
     filename = f"posts/{title.replace(' ', '_').lower()}.md"
+    app.logger.debug('Saving post: %s', filename)
     with open(filename, 'w') as file:
         file.write(f"# {title}\n\n")
         file.write(f"**Author**: {author}\n\n")
@@ -20,6 +26,7 @@ def save_post(title, content, author):
 
 def load_posts():
     posts = []
+    app.logger.debug('Loading posts from directory: %s', os.path.abspath('posts'))
     for filename in os.listdir('posts'):
         if filename.endswith('.md'):
             with open(os.path.join('posts', filename), 'r') as file:
@@ -77,8 +84,24 @@ def create_post():
 
 @app.route('/posts/<post_id>')
 def post(post_id):
-    with open(f'posts/{post_id}.md', 'r') as file:
-        content = file.read()
-        post_html = markdown.markdown(content)
-    return render_template('post.html', post=post_html)
+    try:
+        with open(f'posts/{post_id}.md', 'r') as file:
+            content = file.read()
+            post_html = markdown.markdown(content)
+        return render_template('post.html', post=post_html)
+    except Exception as e:
+        app.logger.error('Error loading post %s: %s', post_id, e)
+        return "Post not found", 404
 
+@app.errorhandler(500)
+def internal_error(error):
+    app.logger.error('Server Error: %s', (error))
+    return "Internal server error", 500
+
+@app.errorhandler(Exception)
+def unhandled_exception(e):
+    app.logger.error('Unhandled Exception: %s', (e))
+    return "Unhandled exception", 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
