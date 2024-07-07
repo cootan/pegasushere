@@ -82,5 +82,3 @@ def post(post_id):
         post_html = markdown.markdown(content)
     return render_template('post.html', post=post_html)
 
-if __name__ == '__main__':
-    app.run(debug=True)
